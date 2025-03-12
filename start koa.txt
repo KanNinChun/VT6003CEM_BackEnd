@@ -1,0 +1,5 @@
+# To boot up the server
+npx ts-node index.ts
+
+# To compile to js to ./out folder
+tsc
