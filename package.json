@@ -5,6 +5,7 @@
     "koa-bodyparser": "^4.4.1",
     "koa-json": "^2.0.2",
     "koa-logger": "^3.2.1",
+    "koa-req-validation": "^0.17.0",
     "koa-router": "^13.0.1"
   },
   "devDependencies": {
