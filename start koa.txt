@@ -3,3 +3,14 @@ npx ts-node index.ts
 
 # To compile to js to ./out folder
 tsc
+
+# Add config.ts [Demo use only]
+
+export const config = {
+    host: "localhost",
+    port: 5432,
+    user: "postgres",
+    password: "super",
+    database: "postgres",
+    connection_limit: 100
+   }
