@@ -33,3 +33,27 @@ export const add = async (article: any) => {
     }
 }
 
+//update a article in the database
+export const update = async (id: any, updateData: { title: string; fullText: string }) => {
+    let { title, fullText } = updateData;
+    let query = `UPDATE articles SET title = ?, alltext = ? WHERE id = ?`;
+    let values = [title, fullText, id];
+    try {
+        await db.run_query(query, values);
+        return { status: 200 };
+    } catch (err: any) {
+        return err;
+    }
+}
+
+//Delete an article in the database
+export const remove = async (id: any) => {
+    let query = "DELETE FROM articles WHERE id = ?";
+    let values = [id];
+    try {
+        await db.run_query(query, values);
+        return { status: 200 };
+    } catch (err: any) {
+        return err;
+    }
+}

@@ -50,26 +50,38 @@ const createArticle = async (ctx: RouterContext, next: any) => {
 }
 
 const updateArticle = async (ctx: RouterContext, next: any) => {
-    let id = +ctx.params.id;
-    const updateArticle = ctx.request.body as { title: string; fullText: string };
-    if ((id < articles.length + 1) && (id > 0)) {
-        articles[id - 1].title = updateArticle.title;
-        articles[id - 1].fullText = updateArticle.fullText;
+    let id = ctx.params.id;
+    const updateData = ctx.request.body as { title?: string; fullText?: string };
+    if (!updateData.title || !updateData.fullText) {
+        ctx.status = 400;
+        ctx.body = { error: "Missing required fields: title and fullText" };
+        return;
+    }
+    let result = await model.update(id, { title: updateData.title!, fullText: updateData.fullText! });
+    if (result.status == 200) {
         ctx.status = 200;
-        ctx.body = articles;
-    } else {
+        ctx.body = { message: "Article updated successfully" };
+    } else if (result.status == 404) {
         ctx.status = 404;
+        ctx.body = { error: "Article not found" };
+    } else {
+        ctx.status = 500;
+        ctx.body = { error: "Failed to update article" };
     }
     await next();
 }
 
 const deleteArticle = async (ctx: RouterContext, next: any) => {
-    let id = +ctx.params.id;
-    if ((id < articles.length + 1) && (id > 0)) {
-        articles.splice(id - 1, 1);
+    let id = ctx.params.id;
+    let result = await model.remove(id);
+    if (result.status === 200) {
         ctx.status = 200;
         ctx.body = { message: "Article deleted successfully" };
+    } else {
+        ctx.status = 500;
+        ctx.body = { error: "Failed to delete article" };
     }
+    await next();
 }
 
 /* Routes are needed to connect path endpoints to handler functions.
