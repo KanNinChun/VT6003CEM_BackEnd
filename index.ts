@@ -117,6 +117,7 @@ app.use(json());
 app.use(logger());
 app.use(bodyParser());
 app.use(router.routes()).use(router.allowedMethods());
+app.use(articles.routes());
 app.listen(10888, () => {
     console.log("Koa Started");
 })
