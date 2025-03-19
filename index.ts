@@ -5,8 +5,22 @@ import json from "koa-json";
 import bodyParser from "koa-bodyparser";
 import { CustomErrorMessageFunction, query, body, validationResults } from "koa-req-validation";
 
+
 const app: Koa = new Koa();
 const router: Router = new Router();
+
+type Film = {
+    id: number;
+    title: string;
+    director: string;
+    year: number
+}
+
+let films: Film[] = [
+    { id: 1, title: 'Inception', director: 'Christopher Nolan', year: 2010 },
+    { id: 2, title: 'The Matrix', director: 'Lana Wachowski, Lilly Wachowski', year: 1999 },
+    { id: 3, title: 'The Godfather', director: 'Francis Ford Coppola', year: 1972 }
+];
 
 const customErrorMessage: CustomErrorMessageFunction = (
     _ctx: RouterContext,
@@ -18,23 +32,17 @@ const customErrorMessage: CustomErrorMessageFunction = (
     );
 };
 
-const validatorName = [
-    body("name").isLength({
-        min: 3
-    }).withMessage(customErrorMessage).build(),
-    body("id").isInt({ min: 10000, max: 20000 }).build()
-]
+router.get('/', async (ctx: RouterContext, next: any) => {
+    ctx.body = { msg: 'Hello world!' };
+    await next();
+})
 
-const films = [
-    { film_title: 'Hello article', description: 'some text to fill the body' },
-    { film_title: 'another article', description: 'again here is some text here to fill' },
-    { film_title: 'coventry university', description: 'some news about coventry university' },
-    { film_title: 'smart campus', description: 'smart campus is coming to IVE' }
+const validatorName = [
+    body("name").isLength({ min: 3 }).withMessage(customErrorMessage).build(),
+    body("id").isInt({ min: 10000, max: 20000 }).build()
 ];
 
-//get & post with validation
-
-router.get('/', query("name").isLength({ min: 3 }).optional().withMessage(customErrorMessage).build(), async (ctx: RouterContext, next: any) => {
+router.get('/', ...validatorName, async (ctx: RouterContext, next: any) => {
     const result = validationResults(ctx);
     if (result.hasErrors()) {
         ctx.status = 422;
@@ -43,62 +51,45 @@ router.get('/', query("name").isLength({ min: 3 }).optional().withMessage(custom
         ctx.body = { msg: `Hello world! ${ctx.query.name}` };
     }
     await next();
-})
+});
 
-router.post('/', ...validatorName, async (ctx: RouterContext, next: any) => {
-    const result = validationResults(ctx);
-    if (result.hasErrors()) {
-        ctx.status = 422;
-        ctx.body = { err: result.mapped() }
-    } else {
-        const data = ctx.request.body; ctx.body = data;
-    }
+//Get Films
+router.get('/films', async (ctx: RouterContext, next: any) => {
+    ctx.body = films
     await next();
 })
 
-// get, post, getById and Put of end point /films  
-router.get('/films',
-    async (ctx: RouterContext, next: any) => {
-        ctx.body = films; await next();
-    })
+//Post Films
+router.post('/films', async (ctx: RouterContext, next: any) => {
+    const newFilm: Film = ctx.request.body as Film;
+    films.push(newFilm);
+    ctx.body = { msg: 'Film added!', film: newFilm };
+    await next();
+})
 
-router.post('/films',
-    async (ctx: RouterContext, next: any) => {
-        const newFilm = ctx.request.body as { film_title: string; description: string };
-        films.push(newFilm);
-        ctx.status = 201;
-        ctx.body = newFilm;
-        await next();
-    })
+// PUT – Update a film
+router.put('/films/:id', async (ctx: RouterContext, next: any) => {
+    const id = parseInt(ctx.params.id);
+    const updatedFilm = ctx.request.body as Film;
+    let film = films.find(f => f.id === id);
 
-
-//by ID
-router.get('/films/:id([0-9]{1,})',
-    async (ctx: RouterContext, next: any) => {
-        let id = +ctx.params.id;
-        console.log('id= ' + id)
-        if ((id < films.length + 1) && (id > 0)) {
-            ctx.body = films[id - 1];
-        } else {
-            ctx.status = 404;
-        }
-        await next();
-    })
-
-router.put('/films/:id([0-9]{1,})', async (ctx: RouterContext, next: any) => {
-    let id = +ctx.params.id;
-    const updateFilm = ctx.request.body as { film_title: string; description: string };
-    if ((id < films.length + 1) && (id > 0)) {
-        films[id - 1].film_title = updateFilm.film_title;
-        films[id - 1].description = updateFilm.description;
-        ctx.status = 200;
-        ctx.body = films;
+    if (film) {
+        film.title = updatedFilm.title;
+        film.director = updatedFilm.director;
+        film.year = updatedFilm.year;
+        ctx.body = { msg: 'Film updated successfully!', film: film };
     } else {
         ctx.status = 404;
+        ctx.body = { msg: 'Film not found!' };
     }
-    await next();
-})
 
+    await next();
+});
+
+app.use(json());
+app.use(logger());
+app.use(bodyParser());
+app.use(router.routes()).use(router.allowedMethods());
 app.use(async (ctx: RouterContext, next: any) => {
     try {
         await next();
@@ -110,12 +101,6 @@ app.use(async (ctx: RouterContext, next: any) => {
         ctx.body = { err: err };
     }
 })
-
-
-app.use(json());
-app.use(logger());
-app.use(bodyParser());
-app.use(router.routes()).use(router.allowedMethods());
 app.listen(10888, () => {
     console.log("Koa Started");
-})
+});
