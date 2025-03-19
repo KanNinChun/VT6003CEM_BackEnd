@@ -4,7 +4,7 @@ import logger from "koa-logger";
 import json from "koa-json";
 import bodyParser from "koa-bodyparser";
 import { CustomErrorMessageFunction, query, body, validationResults } from "koa-req-validation";
-
+import {router as articles} from "./routes/articles";
 
 const app: Koa = new Koa();
 const router: Router = new Router();
@@ -32,10 +32,14 @@ const customErrorMessage: CustomErrorMessageFunction = (
     );
 };
 
-router.get('/', async (ctx: RouterContext, next: any) => {
-    ctx.body = { msg: 'Hello world!' };
+const welcomeAPI = async (ctx: RouterContext, next: any) => {
+    ctx.body = {
+    message: "Welcome to the blog API!"
+    };
     await next();
-})
+   }
+
+router.get('/api/v1', welcomeAPI);
 
 const validatorName = [
     body("name").isLength({ min: 3 }).withMessage(customErrorMessage).build(),
@@ -101,6 +105,7 @@ app.use(async (ctx: RouterContext, next: any) => {
         ctx.body = { err: err };
     }
 })
+app.use(articles.routes());
 app.listen(10888, () => {
     console.log("Koa Started");
 });
