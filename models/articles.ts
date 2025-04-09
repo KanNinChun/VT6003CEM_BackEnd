@@ -34,20 +34,29 @@ export const add = async (article: any) => {
 }
 
 //update a article in the database
-export const update = async (id: any, updateData: { title: string; fullText: string }) => {
-    let { title, fullText } = updateData;
-    let query = `UPDATE articles SET title = ?, alltext = ? WHERE id = ?`;
-    let values = [title, fullText, id];
+export const update = async (article: any, id: any) => {
+    //console.log("article " , article)
+    // console.log("id ",id)
+    let keys = Object.keys(article)
+    let values = Object.values(article)
+    let updateString = ""
+    for (let i: number = 0; i < values.length; i++) { updateString += keys[i] + "=" + "'" + values[i] + "'" + "," }
+    updateString = updateString.slice(0, -1)
+    // console.log("updateString ", updateString)
+    let query = `UPDATE articles SET ${updateString} WHERE ID=${id} RETURNING *;`
+    console.log("Generated query:", query);
+    console.log("Values:", values);
     try {
-        await db.run_query(query, values);
-        return { status: 200 };
-    } catch (err: any) {
-        return err;
+        await db.run_query(query, values)
+        return { "status": 201 }
+        
+    } catch (error) {
+        return error
     }
 }
 
 //Delete an article in the database
-export const remove = async (id: any) => {
+export const deleteById = async (id: any) => {
     let query = "DELETE FROM articles WHERE id = ?";
     let values = [id];
     try {

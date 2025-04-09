@@ -50,30 +50,40 @@ const createArticle = async (ctx: RouterContext, next: any) => {
 }
 
 const updateArticle = async (ctx: RouterContext, next: any) => {
-    let id = ctx.params.id;
-    const updateData = ctx.request.body as { title?: string; fullText?: string };
-    if (!updateData.title || !updateData.fullText) {
+    let id = +ctx.params.id; // Extract `id` from URL
+    let updateData = ctx.request.body; // Extract payload
+
+    // Validate input payload
+    if (!updateData || typeof updateData !== 'object' || Object.keys(updateData).length === 0) {
         ctx.status = 400;
-        ctx.body = { error: "Missing required fields: title and fullText" };
+        ctx.body = { error: "Invalid or missing update data" };
         return;
     }
-    let result = await model.update(id, { title: updateData.title!, fullText: updateData.fullText! });
-    if (result.status == 200) {
-        ctx.status = 200;
-        ctx.body = { message: "Article updated successfully" };
-    } else if (result.status == 404) {
-        ctx.status = 404;
-        ctx.body = { error: "Article not found" };
-    } else {
+
+    try {
+        let result = await model.update(updateData, id) as { status: number }; // Update article in DB
+        if (result.status === 201) {
+            ctx.status = 201;
+            ctx.body = { message: `Article with id ${id} updated successfully` };
+        } else if (result.status === 404) {
+            ctx.status = 404;
+            ctx.body = { error: "Article not found" };
+        } else {
+            throw new Error("Update failed");
+        }
+    } catch (error) {
+        console.error("Error updating article:", error);
         ctx.status = 500;
         ctx.body = { error: "Failed to update article" };
     }
+
     await next();
-}
+};
+
 
 const deleteArticle = async (ctx: RouterContext, next: any) => {
     let id = ctx.params.id;
-    let result = await model.remove(id);
+    let result = await model.deleteById(id);
     if (result.status === 200) {
         ctx.status = 200;
         ctx.body = { message: "Article deleted successfully" };
@@ -91,7 +101,7 @@ const deleteArticle = async (ctx: RouterContext, next: any) => {
 router.get('/', getAll);
 router.post('/', bodyParser(), createArticle);
 router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', updateArticle);
+router.put('/:id([0-9]{1,})', bodyParser(), updateArticle);
 router.del('/:id([0-9]{1,})', deleteArticle);
 
 // Finally, define the exported object when import from other scripts.
