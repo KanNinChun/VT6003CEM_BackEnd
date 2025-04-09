@@ -5,6 +5,7 @@ import json from "koa-json";
 import bodyParser from "koa-bodyparser";
 import { CustomErrorMessageFunction, query, body, validationResults } from "koa-req-validation";
 import { router as articles } from "./routes/articles";
+import {router as specials} from './routes/specials';
 
 const app: Koa = new Koa();
 const router: Router = new Router();
@@ -118,6 +119,7 @@ app.use(logger());
 app.use(bodyParser());
 app.use(router.routes()).use(router.allowedMethods());
 app.use(articles.routes());
+app.use(specials.routes());
 app.listen(10888, () => {
     console.log("Koa Started");
 })

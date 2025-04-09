@@ -1,18 +1,11 @@
 import Router, { RouterContext } from "koa-router";
 import bodyParser from "koa-bodyparser";
+import { basicAuth } from "../controllers/auth";
+import {validateArticle} from '../controllers/validation';
 import * as model from '../models/articles';
 
 // Since we are handling articles use a URI that begins with an appropriate path
 const router = new Router({ prefix: '/api/v1/articles' });
-
-// Temporarily define some random articles in an array.
-// Later this will come from the DB.
-const articles = [
-    { title: 'hello article', fullText: 'some text here to fill the body' },
-    { title: 'another article', fullText: 'again here is some text here to fill' },
-    { title: 'coventry university ', fullText: 'some news about coventry university' },
-    { title: 'smart campus', fullText: 'smart campus is coming to IVE' }
-];
 
 // Now we define the handler functions
 const getAll = async (ctx: RouterContext, next: any) => {
@@ -80,7 +73,6 @@ const updateArticle = async (ctx: RouterContext, next: any) => {
     await next();
 };
 
-
 const deleteArticle = async (ctx: RouterContext, next: any) => {
     let id = ctx.params.id;
     let result = await model.deleteById(id);
@@ -99,9 +91,10 @@ const deleteArticle = async (ctx: RouterContext, next: any) => {
  a named route parameter. Here the name of the parameter will be 'id'
  and we will define the pattern to match at least 1 numeral. */
 router.get('/', getAll);
-router.post('/', bodyParser(), createArticle);
+router.post('/', basicAuth, bodyParser(), validateArticle, createArticle);
+router.put('/:id([0-9]{1,})', basicAuth, bodyParser(), validateArticle,
+updateArticle);
 router.get('/:id([0-9]{1,})', getById);
-router.put('/:id([0-9]{1,})', bodyParser(), updateArticle);
 router.del('/:id([0-9]{1,})', deleteArticle);
 
 // Finally, define the exported object when import from other scripts.
