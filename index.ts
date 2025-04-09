@@ -4,6 +4,7 @@ import logger from "koa-logger";
 import json from "koa-json";
 import bodyParser from "koa-bodyparser";
 import passport from "koa-passport";
+import serve from 'koa-static';
 import { router as articles } from "./routes/articles";
 import { router as special } from "./routes/specials";
 
@@ -24,6 +25,7 @@ app.use(logger());
 app.use(bodyParser());
 app.use(router.routes());
 //app.use(articles.routes());
+app.use(serve('./docs'));
 app.use(passport.initialize());
 app.use(special.middleware());
 app.use(articles.middleware());

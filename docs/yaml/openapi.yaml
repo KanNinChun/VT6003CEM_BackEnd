@@ -1,0 +1,67 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Back End Demonstration API
+  description: A simple blog API.
+  contact:
+    name: Kan
+    email: Kan@gmail.com
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  - url: 'http://localhost:10888'
+    description: Development server
+tags:
+  - name: Users
+    description: API endpoints for user management.
+  - name: Articles
+    description: Access and perform CRUD operations on blog entries
+
+paths:
+  /articles/{id}:
+    get:
+      tags:
+        - Articles
+      description:
+        Get article by id.
+      responses:
+        '200':
+          description: View of an article record.
+        '404':
+          description: Article was not found in the DB.
+    put:
+      tags:
+        - Articles
+      description:
+        Update article by ID.
+      responses:
+        '200':
+          description: Update confirmation and link to record.
+        '404':
+          description: Article was not found in the DB.
+    delete:
+      tags:
+        - Articles
+      description:
+        Delete article by ID.
+      responses:
+        '200':
+          description: Delete confirmation.
+        '404':
+          description: Article was not found in the DB.
+    post:
+      tags:
+        - Articles
+      description:
+        Create a new article.
+      requestBody:
+        description: All new article data.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./article.json#/definitions/article
+      responses:
+        '201':
+          description: Articles created
