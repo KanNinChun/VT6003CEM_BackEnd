@@ -7,6 +7,7 @@ import passport from "koa-passport";
 import serve from 'koa-static';
 import { router as articles } from "./routes/articles";
 import { router as special } from "./routes/specials";
+import{ router as register } from "./routes/register";
 import cors from '@koa/cors';
 
 const app: Koa = new Koa();
@@ -25,11 +26,11 @@ app.use(json());
 app.use(logger());
 app.use(bodyParser());
 app.use(router.routes());
-//app.use(articles.routes());
 app.use(serve('./docs'));
 app.use(passport.initialize());
 app.use(special.middleware());
 app.use(articles.middleware());
+app.use(register.middleware());
 
 app.use(async (ctx: RouterContext, next: any) => {
   try {
